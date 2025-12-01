@@ -9,9 +9,9 @@ const SALT_ROUNDS = 10;
 
 export const register = async (req: Request<{}, {}, RegisterDto>, res: Response, next: NextFunction) => {
     try {
-        const { Username, Email, PasswordHash: password } = req.body;
+        const { username, email, passwordHash: password } = req.body;
 
-        const existingUser = await User.findOne({ email: Email });
+        const existingUser = await User.findOne({ email: email });
         if (existingUser) {
             throw new BadRequestError("Email already exists.");
         }
@@ -19,8 +19,8 @@ export const register = async (req: Request<{}, {}, RegisterDto>, res: Response,
         const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
         const user = new User({
-            username: Username,
-            email: Email,
+            username: username,
+            email: email,
             passwordHash: passwordHash,
         });
 
@@ -33,17 +33,17 @@ export const register = async (req: Request<{}, {}, RegisterDto>, res: Response,
 
 export const login = async (req: Request<{}, {}, LoginDto>, res: Response, next: NextFunction) => {
     try {
-        const { EmailOrUsername, Password } = req.body;
+        const { emailOrUsername, password } = req.body;
 
         // Try to find user by email or username (Matches C# logic)
         const user = await User.findOne({ 
             $or: [
-                { email: EmailOrUsername },
-                { username: EmailOrUsername }
+                { email: emailOrUsername },
+                { username: emailOrUsername }
             ]
         });
 
-        if (!user || !(await bcrypt.compare(Password, user.passwordHash))) {
+        if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
             throw new UnauthorizedError("Invalid credentials");
         }
 

@@ -35,14 +35,14 @@ export interface IJobApplication extends IBaseDocument {
 }
 
 export interface LoginDto {
-    EmailOrUsername: string;
-    Password: string;
+    emailOrUsername: string;
+    password: string;
 }
 
 export interface RegisterDto {
-    Username: string;
-    Email: string;
-    PasswordHash: string;
+    username: string;
+    email: string;
+    passwordHash: string;
 }
 
 export interface PipelineDto {

@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { Types } from 'mongoose';
+import { UnauthorizedError } from './errorHandler';
 import { AuthenticatedRequest } from '../models/types';
 
 // Load environment variables defined in .env
@@ -20,6 +21,7 @@ export const generateJwtToken = (userId: Types.ObjectId, username: string, email
     const payload = {
         sub: userId.toHexString(), 
         jti: userId.toHexString(), 
+        email: email,
         role: "User", 
     };
 
@@ -27,7 +29,6 @@ export const generateJwtToken = (userId: Types.ObjectId, username: string, email
         expiresIn: `${expireMinutes}m`,
         issuer: JWT_ISSUER,
         audience: JWT_AUDIENCE,
-        subject: userId.toHexString()
     });
 };
 
@@ -35,7 +36,7 @@ export const generateJwtToken = (userId: Types.ObjectId, username: string, email
 export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Unauthorized: No token provided.' });
+        return next(new UnauthorizedError('No token provided'));
     }
 
     const token = authHeader.split(' ')[1];
@@ -61,6 +62,6 @@ export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: N
         if (error instanceof jwt.TokenExpiredError) {
             message = 'Token expired';
         }
-        return res.status(401).json({ message });
+        return next(new UnauthorizedError(message));
     }
 };
