@@ -15,13 +15,28 @@ const PORT = process.env.PORT || 5027;
 // Connect to MongoDB
 connectDB();
 
-// Global Middleware
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+    .split(',')
+    .map(s => s.trim());
 
-// CORS: Matches the 'AllowFrontend' policy in C# Program.cs
+console.log('Allowed CORS Origins:', allowedOrigins);
+
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173', 
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    origin: function (origin, callback) {
+        // Allow requests with no origin (e.g., mobile apps, direct file access)
+        if (!origin) return callback(null, true); 
+        
+        // If the origin is in our allowed list, allow it
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            // Block others
+            callback(new Error('Not allowed by CORS'), false);
+        }
+    },
+    // CRITICAL: Ensure all necessary methods and headers are allowed
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 // Body Parser for JSON requests
